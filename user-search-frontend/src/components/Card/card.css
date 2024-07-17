@@ -1,0 +1,13 @@
+.card {
+    padding: 2rem;
+    border-radius: 1rem;
+    background-color: #fff;
+    border: 1px solid #1b1a1a;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+    margin-top: 1rem;
+  }
+  
+  .card p {
+    margin: 8px 0;
+  }

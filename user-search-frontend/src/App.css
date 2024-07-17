@@ -1,0 +1,14 @@
+.app-container {
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; 
+  padding: 2rem;
+}
+
+.card-list {
+  margin-top: 2rem;
+  max-width: 24rem;
+}
