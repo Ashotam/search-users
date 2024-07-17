@@ -1,39 +1,62 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import UserForm from './components/UserForm'; // Adjust the path as needed
-import Card from './components/Card'; // Adjust the path as needed
+import UserForm from './components/UserForm'; 
+import Card from './components/Card';
 import { User } from './types/UserContracts';
-import './App.css'; // Assuming your CSS file is named App.css
+import './App.css';
 const baseUrl = import.meta.env.VITE_BASE_URL as string;
 
 const App: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [cancelTokenSource, setCancelTokenSource] = useState<ReturnType<typeof axios.CancelToken.source>>();
+  const cancelTokenSourceRef = useRef<ReturnType<typeof axios.CancelToken.source> | null>(null);
+  const requestCounterRef = useRef(0);
+
+  useEffect(() => {
+    return () => {
+      cancelRequest();
+    };
+  }, []);
+
+  const cancelRequest = () => {
+    if (cancelTokenSourceRef.current) {
+      cancelTokenSourceRef.current.cancel('Component unmounted.');
+      cancelTokenSourceRef.current = null;
+    }
+  };
 
   const handleUserFormSubmitSuccess = async (formData: User) => {
-    if (cancelTokenSource) {
-      cancelTokenSource.cancel('Operation canceled due to new request.');
-    }
+    cancelRequest();
 
     const source = axios.CancelToken.source();
-    setCancelTokenSource(source);
-    setLoading(true); 
+    cancelTokenSourceRef.current = source;
+    setLoading(true);
+    setError(null);
+    requestCounterRef.current += 1;
+    const currentRequest = requestCounterRef.current;
 
     try {
       const response = await axios.post<User[]>(`${baseUrl}/api/search`, formData, {
         cancelToken: source.token,
       });
-      setUsers(response.data);
-      setLoading(false)
-      setError(null);
+      if (currentRequest === requestCounterRef.current) {
+        setUsers(response.data);
+        setError(null); 
+      }
     } catch (error) {
       if (!axios.isCancel(error)) {
         console.error('Search request failed:', error);
+        if (currentRequest === requestCounterRef.current) {
+          setError('Failed to search users. Please try again.');
+        }
       }
-      setError('Failed to search users. Please try again.');
-    } 
+    } finally {
+     
+      if (currentRequest === requestCounterRef.current) {
+        setLoading(false);
+      }
+    }
   };
 
   const resetForm = () => {

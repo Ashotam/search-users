@@ -5,7 +5,6 @@ import User from './models/user';
 
 dotenv.config();
 
-// MongoDB connection setup
 const uri = config.MONGODB_URI || "";
 if (!uri) {
   console.error('MongoDB URI is not defined in the environment variables.');
